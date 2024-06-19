@@ -5,7 +5,6 @@ import { LoginApi } from '../services/Api';
 import {storeUserData } from '../services/Storage'
 import { isAuthenticated } from '../services/Auth';
 import { Link, Navigate } from 'react-router-dom';
-import NavBar from '../components/NavBar';
 
 export default function LoginPage (){
 
@@ -47,7 +46,7 @@ export default function LoginPage (){
             LoginApi(inputs).then((response)=>{
                storeUserData(response.data.idToken);
             }).catch((err)=>{
-               if (err.code="ERR_BAD_REQUEST") {
+               if (err.code==="ERR_BAD_REQUEST") {
                     setErrors({...errors,custom_error:"Invalid Credentials."})
                }
 
@@ -67,7 +66,6 @@ export default function LoginPage (){
 
     return (
         <div>
-            <NavBar/>
             <section className="login-block">
                 <div className="container">
                     <div className="row ">

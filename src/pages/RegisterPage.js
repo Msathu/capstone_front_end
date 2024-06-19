@@ -1,16 +1,22 @@
 import { useState } from 'react'
-import { RegisterApi } from '../services/Api';
+import { registerApi } from '../services/registerApi';
 import { isAuthenticated } from '../services/Auth';
-import { storeUserData } from '../services/Storage';
 import './RegisterPage.css'
 import { Link, Navigate } from 'react-router-dom';
-import NavBar from '../components/NavBar';
 
 export default function RegisterPage(){
     const initialStateErrors = {
         email:{required:false},
         password:{required:false},
-        name:{required:false},
+        firstname: { required: false },
+        lastname: { required: false },
+        job: { required: false },
+        streetAddress: { required: false },
+        city: { required: false },
+        state: { required: false },
+        country: { required: false },
+        postalCode: { required: false },
+        apartmentNumber: {required: false},
         custom_error:null
     };
     const [errors,setErrors] = useState(initialStateErrors);
@@ -21,15 +27,43 @@ export default function RegisterPage(){
         event.preventDefault();
         let errors =initialStateErrors; 
         let hasError = false; 
-        if (inputs.name == "") {
-            errors.name.required =true;
+        if (inputs.firstname === "") {
+            errors.firstname.required =true;
             hasError=true;
         }
-        if (inputs.email == "") {
+        if (inputs.lastname === "") {
+            errors.lastname.required =true;
+            hasError=true;
+        }
+        if (inputs.job === "") {
+            errors.job.required =true;
+            hasError=true;
+        }
+        if (inputs.streetAddress === "") {
+            errors.streetAddress.required =true;
+            hasError=true;
+        }
+        if (inputs.city === "") {
+            errors.city.required =true;
+            hasError=true;
+        }
+        if (inputs.state === "") {
+            errors.state.required =true;
+            hasError=true;
+        }
+        if (inputs.country === "") {
+            errors.country.required =true;
+            hasError=true;
+        }
+        if (inputs.postalCode === "") {
+            errors.postalCode.required =true;
+            hasError=true;
+        }
+        if (inputs.email === "") {
             errors.email.required =true;
             hasError=true;
         }
-        if (inputs.password == "") {
+        if (inputs.password === "") {
             errors.password.required =true;
             hasError=true;
         }
@@ -37,14 +71,14 @@ export default function RegisterPage(){
         if (!hasError) {
             setLoading(true)
             //sending register api request
-            RegisterApi(inputs).then((response)=>{
-               storeUserData(response.data.idToken);
-            }).catch((err)=>{
-               if(err.response.data.error.message=="EMAIL_EXISTS"){
+            registerApi(inputs).then((response)=>{
+                console.log(response);
+            }).catch((err) => {
+                console.log(err);
+               if(err.response.data.error === "Email Already Exists"){
                     setErrors({...errors,custom_error:"Already this email has been registered!"})
-               }else if(String(err.response.data.error.message).includes('WEAK_PASSWORD')){
-                    setErrors({...errors,custom_error:"Password should be at least 6 characters!"})
                }
+            setErrors({ ...errors, custom_error: err.response.data.error });
 
             }).finally(()=>{
                 setLoading(false)
@@ -57,7 +91,15 @@ export default function RegisterPage(){
     const [inputs,setInputs] = useState({
         email:"",
         password:"",
-        name:""
+        firstname: "",
+        lastname: "",
+        job: "",
+        streetAddress: "",
+        city: "",
+        state: "",
+        country:"",
+        postalCode: "",
+        apartmentNumber:"",
     })
 
     const handleInput = (event)=>{
@@ -65,13 +107,11 @@ export default function RegisterPage(){
     }
 
     if (isAuthenticated()) {
-        //redirect user to dashboard
         return <Navigate to="/dashboard" />
     }
     
     return (
         <div>
-            <NavBar/>
             <section className="register-block">
                 <div className="container">
                 <div className="row ">
@@ -79,14 +119,89 @@ export default function RegisterPage(){
                         <h2 className="text-center">Register Now</h2>
                         <form onSubmit={handleSubmit} className="register-form" action="" >
                         <div className="form-group">
-                            <label htmlFor="exampleInputEmail1" className="text-uppercase">Name</label>
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase"> First Name</label>
             
-                            <input type="text" className="form-control" onChange={handleInput} name="name" id=""  />
-                        { errors.name.required?
+                            <input type="text" className="form-control" onChange={handleInput} name="firstname" id=""  />
+                        { errors.firstname.required?
                             (<span className="text-danger" >
-                                    Name is required.
+                                    First Name is required.
                                 </span>):null
                             }
+                                </div>
+                                <div className="form-group">
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase">Last Name</label>
+            
+                            <input type="text" className="form-control" onChange={handleInput} name="lastname" id=""  />
+                        { errors.lastname.required?
+                            (<span className="text-danger" >
+                                    Last Name is required.
+                                </span>):null
+                            }
+                                </div>
+                                <div className="form-group">
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase">Profession</label>
+            
+                            <input type="text" className="form-control" onChange={handleInput} name="job" id=""  />
+                        { errors.job.required?
+                            (<span className="text-danger" >
+                                    Profession is required.
+                                </span>):null
+                            }
+                                </div>
+                                <div className="form-group">
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase">Country</label>
+            
+                            <input type="text" className="form-control" onChange={handleInput} name="country" id=""  />
+                        { errors.country.required?
+                            (<span className="text-danger" >
+                                    Country is required.
+                                </span>):null
+                            }
+                                </div>
+                                <div className="form-group">
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase">Street Address</label>
+            
+                            <input type="text" className="form-control" onChange={handleInput} name="streetAddress" id=""  />
+                        { errors.streetAddress.required?
+                            (<span className="text-danger" >
+                                    Street Address is required.
+                                </span>):null
+                            }
+                                </div>
+                                <div className="form-group">
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase">City</label>
+            
+                            <input type="text" className="form-control" onChange={handleInput} name="city" id=""  />
+                        { errors.city.required?
+                            (<span className="text-danger" >
+                                    City is required.
+                                </span>):null
+                            }
+                                </div>
+                                <div className="form-group">
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase">State</label>
+            
+                            <input type="text" className="form-control" onChange={handleInput} name="state" id=""  />
+                        { errors.state.required?
+                            (<span className="text-danger" >
+                                    State is required.
+                                </span>):null
+                            }
+                                </div>
+                                <div className="form-group">
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase">Postal Code</label>
+            
+                            <input type="text" className="form-control" onChange={handleInput} name="postalCode" id=""  />
+                        { errors.postalCode.required?
+                            (<span className="text-danger" >
+                                    Postal Code is required.
+                                </span>):null
+                            }
+                                </div>
+                                <div className="form-group">
+                            <label htmlFor="exampleInputEmail1" className="text-uppercase">Apartment Number (optional)</label>
+            
+                            <input type="text" className="form-control" onChange={handleInput} name="apartmentNumber" id=""  />
                         </div>
                         <div className="form-group">
                             <label htmlFor="exampleInputEmail1"  className="text-uppercase">Email</label>
