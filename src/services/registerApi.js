@@ -3,7 +3,7 @@ import axios from "axios";
 export const registerApi = async (inputs) => {
     try {
 
-        const endpoint = `http://localhost:3000/member/createMember`;
+        const endpoint = `${process.env.API_BASE_URL}/member/createMember`;
 
         const response = await axios.post(endpoint, {
             firstname: inputs.firstname,
