@@ -25,9 +25,8 @@ export const registerApi = async (inputs) => {
             }
         });
 
-        console.log(response.data);
 
-        return response.data;
+        return response;
     } catch (error) {
         console.error("Error during registration:", error);
         throw error;

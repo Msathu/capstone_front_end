@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { registerApi } from '../services/registerApi';
-import { isAuthenticated } from '../services/Auth';
 import './RegisterPage.css'
-import { Link, Navigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { message } from 'antd';
 
 export default function RegisterPage(){
     const initialStateErrors = {
@@ -21,70 +21,46 @@ export default function RegisterPage(){
     };
     const [errors,setErrors] = useState(initialStateErrors);
 
-    const [loading,setLoading]  =  useState(false);
+    const [loading, setLoading] = useState(false);
+    const [messageApi, contextHolder] = message.useMessage();
+    const navigate = useNavigate();
 
-    const handleSubmit = (event)=>{
+    const handleSubmit = async (event)=>{
         event.preventDefault();
-        let errors =initialStateErrors; 
+        let errors = { ...initialStateErrors }; 
         let hasError = false; 
-        if (inputs.firstname === "") {
-            errors.firstname.required =true;
-            hasError=true;
-        }
-        if (inputs.lastname === "") {
-            errors.lastname.required =true;
-            hasError=true;
-        }
-        if (inputs.job === "") {
-            errors.job.required =true;
-            hasError=true;
-        }
-        if (inputs.streetAddress === "") {
-            errors.streetAddress.required =true;
-            hasError=true;
-        }
-        if (inputs.city === "") {
-            errors.city.required =true;
-            hasError=true;
-        }
-        if (inputs.state === "") {
-            errors.state.required =true;
-            hasError=true;
-        }
-        if (inputs.country === "") {
-            errors.country.required =true;
-            hasError=true;
-        }
-        if (inputs.postalCode === "") {
-            errors.postalCode.required =true;
-            hasError=true;
-        }
-        if (inputs.email === "") {
-            errors.email.required =true;
-            hasError=true;
-        }
-        if (inputs.password === "") {
-            errors.password.required =true;
-            hasError=true;
-        }
+
+        Object.keys(inputs).forEach((key) => {
+            if (inputs[key] === "" && key !== "apartmentNumber") {
+                errors[key].required = true;
+                hasError = true;
+            }
+        });
 
         if (!hasError) {
-            setLoading(true)
-            //sending register api request
-            registerApi(inputs).then((response)=>{
-                console.log(response);
-            }).catch((err) => {
-                console.log(err);
-               if(err.response.data.error === "Email Already Exists"){
-                    setErrors({...errors,custom_error:"Already this email has been registered!"})
-               }
-            setErrors({ ...errors, custom_error: err.response.data.error });
-
-            }).finally(()=>{
-                setLoading(false)
-            })
+            setLoading(true);
+            try {
+                const response = await registerApi(inputs);
+                if (response.status === 200) {
+                    messageApi.open({
+                        type: 'success',
+                        content: response.data.msg,
+                    });
+                    setTimeout(() => {
+                        navigate('/login');
+                    }, 2000);
+                }
+            } catch (err) {
+                if (err.response.data.error === "Email Already Exists") {
+                    errors.custom_error = "This email is already registered!";
+                } else {
+                    errors.custom_error = err.response.data.error;
+                }
+            } finally {
+                setLoading(false);
+            }
         }
-        console.log(initialStateErrors,errors);
+
         setErrors(errors);
     }
 
@@ -105,18 +81,15 @@ export default function RegisterPage(){
     const handleInput = (event)=>{
         setInputs({...inputs,[event.target.name]:event.target.value})
     }
-
-    if (isAuthenticated()) {
-        return <Navigate to="/dashboard" />
-    }
     
     return (
         <div>
             <section className="register-block">
                 <div className="container">
                 <div className="row ">
-                    <div className="col register-sec">
-                        <h2 className="text-center">Register Now</h2>
+                        <div className="col register-sec">
+                            <h2 className="text-center">Register Now</h2>
+                            {contextHolder}
                         <form onSubmit={handleSubmit} className="register-form" action="" >
                         <div className="form-group">
                             <label htmlFor="exampleInputEmail1" className="text-uppercase"> First Name</label>
@@ -206,7 +179,7 @@ export default function RegisterPage(){
                         <div className="form-group">
                             <label htmlFor="exampleInputEmail1"  className="text-uppercase">Email</label>
             
-                            <input type="text"  className="form-control" onChange={handleInput} name="email" id=""  />
+                            <input type="email"  className="form-control" onChange={handleInput} name="email" id=""  />
                             { errors.email.required?
                             (<span className="text-danger" >
                                 Email is required.

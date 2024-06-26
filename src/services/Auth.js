@@ -1,8 +1,8 @@
-import { getUserData, removeUserData } from "./Storage"
+import { getAccessToken, removeUserData } from "./Storage"
 
 
 export const isAuthenticated = ()=>{
-    return getUserData()!=null?true:false;
+    return getAccessToken()!=null?true:false;
 }
 
 export const logout = ()=>{
