@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
-import { Upload, message, Modal, Input, Form, Space, Card, Typography, Image, Row, Col, Button } from 'antd';
+import { Upload, message, Modal, Input, Form, Space, Card, Typography, Image, Row, Col, Button, Select } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import { getAccessToken } from "../services/Storage";
 import axios from 'axios';
 import moment from 'moment';
 import { saveReciept } from '../services/saveRecieptApi';
+import { categories } from '../constants/categories';
 
 const { Dragger } = Upload;
 const { Title } = Typography;
+const { Option } = Select;
 
 const UploadComponent = () => {
   const [fileList, setFileList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalData, setModalData] = useState({
     shopName: '',
+    category: 'Retail and Grocery',
     amountPaid: '',
     discount: '',
     invoice_reciept_date: '',
@@ -64,6 +67,7 @@ const UploadComponent = () => {
 
       const transformedData = {
         shopName: SHOP_NAME || VENDOR_NAME,
+        category:'Retail and Grocery',
         vendor_name: VENDOR_NAME,
         vendor_phone: VENDOR_PHONE,
         tax: TAX,
@@ -107,6 +111,7 @@ const UploadComponent = () => {
   const handleModalCancel = () => {
     setModalData({
       shopName: '',
+      category: 'Retail and Grocery',
       amountPaid: '',
       discount: '',
       invoice_reciept_date: '',
@@ -208,6 +213,15 @@ const UploadComponent = () => {
           <Form.Item label="Shop Name">
             <Input value={modalData.shopName} required={true} onChange={(e) => setModalData({ ...modalData, shopName: e.target.value })} />
           </Form.Item>
+          <Form.Item label="Category">
+            <Select value={modalData.category} defaultValue={categories[4]} onChange={(value) => setModalData({ ...modalData, category: value })}>
+              {categories.map((category) => (
+                <Option key={category} value={category}>
+                  {category}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
           <Form.Item label="Vendor Name">
             <Input value={modalData.vendor_name} onChange={(e) => setModalData({ ...modalData, vendor_name: e.target.value })} />
           </Form.Item>
@@ -218,7 +232,7 @@ const UploadComponent = () => {
             <Input value={modalData.vendor_url} onChange={(e) => setModalData({ ...modalData, vendor_url: e.target.value })} />
           </Form.Item>
           <Form.Item label="Invoice Receipt Date (DD/MM/YYYY)">
-          <Input value={modalData.invoice_reciept_date} onChange={(e) => setModalData({ ...modalData, invoice_reciept_date: e.target.value })} />
+            <Input value={modalData.invoice_reciept_date} onChange={(e) => setModalData({ ...modalData, invoice_reciept_date: e.target.value })} />
           </Form.Item>
           <Form.Item label="Tax">
             <Input value={modalData.tax} onChange={(e) => setModalData({ ...modalData, tax: e.target.value })} />

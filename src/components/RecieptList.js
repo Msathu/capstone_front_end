@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { getReciepts } from '../services/getRecieptsApi';
-import { List, message, Pagination, Image, Input, DatePicker, Button, Modal, Form, InputNumber, Popconfirm } from 'antd';
+import { List, message, Pagination, Image, Input, DatePicker, Button, Modal, Form, InputNumber, Popconfirm, Select } from 'antd';
 import '../styles/recieptsListComponent.css';
 import moment from 'moment';
 import { updateReciept } from '../services/updateRecieptApi';
 import { deleteReciept } from "../services/deleteRecieptApi";
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { categories } from '../constants/categories';
 
 const { Search } = Input;
 const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const ReceiptListComponent = () => {
     const [receipts, setReceipts] = useState([]);
@@ -22,6 +24,7 @@ const ReceiptListComponent = () => {
     const [sortField, setSortField] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [currentReceipt, setCurrentReceipt] = useState(null);
+    const [category, setCategory] = useState('');
 
     const fetchReceipts = async () => {
         try {
@@ -56,9 +59,15 @@ const ReceiptListComponent = () => {
         if (dateFilter && dateFilter.length === 2) {
             const startDate = new Date(dateFilter[0]);
             const endDate = new Date(dateFilter[1]);
-
+        
+            startDate.setUTCHours(0, 0, 0, 0);
+            endDate.setUTCHours(23, 59, 59, 999);
+        
             filteredData = filteredData.filter(receipt => {
-                const receiptDate = new Date(receipt.invoice_reciept_date);
+                const invoiceDateStr = receipt.invoice_reciept_date;
+                const [day, month, year] = invoiceDateStr.split('/');
+                const receiptDate = new Date(Date.UTC(year, month - 1, day));
+        
                 return receiptDate >= startDate && receiptDate <= endDate;
             });
         }
@@ -66,14 +75,14 @@ const ReceiptListComponent = () => {
         if (sortField && sortOrder) {
             filteredData.sort((a, b) => {
                 if (sortField === 'shopName') {
-                    if (sortOrder === 'asc') {
-                        return a[sortField].localeCompare(b[sortField]);
-                    } else {
-                        return b[sortField].localeCompare(a[sortField]);
-                    }
+                    return sortOrder === 'asc' ? a[sortField].localeCompare(b[sortField]) : b[sortField].localeCompare(a[sortField]);
                 } else if (sortField === 'invoice_reciept_date') {
-                    const dateA = new Date(a[sortField]);
-                    const dateB = new Date(b[sortField]);
+                    const [dayA, monthA, yearA] = a[sortField].split('/');
+                    const [dayB, monthB, yearB] = b[sortField].split('/');
+    
+                    const dateA = new Date(yearA, monthA - 1, dayA);
+                    const dateB = new Date(yearB, monthB - 1, dayB);
+    
                     if (sortOrder === 'asc') {
                         return dateA - dateB;
                     } else {
@@ -116,6 +125,7 @@ const ReceiptListComponent = () => {
 
     const openModal = (receipt) => {
         setCurrentReceipt(receipt);
+        setCategory(receipt.category);
         setModalVisible(true);
     };
 
@@ -125,26 +135,26 @@ const ReceiptListComponent = () => {
 
     const confirm = async (id) => {
         try {
-            const response = await deleteReciept({ _id:id });
+            const response = await deleteReciept({ _id: id });
             message.success(response.data.message);
             fetchReceipts();
         } catch (err) {
             message.error(err.message);
         }
-      };
+    };
 
     const handleSave = async () => {
         try {
             if (currentReceipt) {
                 const formattedDate = currentReceipt.invoice_reciept_date ? moment(currentReceipt.invoice_reciept_date, ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY/MM/DD']).format('DD/MM/YYYY') : moment().format('DD/MM/YYYY');
-                setCurrentReceipt({ ...currentReceipt, invoice_reciept_date: formattedDate });
-                const response = await updateReciept({ ...currentReceipt, invoice_reciept_date: formattedDate });
+                setCurrentReceipt({ ...currentReceipt, invoice_reciept_date: formattedDate, category }); // Update category in current receipt
+                const response = await updateReciept({ ...currentReceipt, invoice_reciept_date: formattedDate, category }); // Include category in update request
                 closeModal();
                 message.success(response.data.message);
                 fetchReceipts();
             }
         } catch (err) {
-            message.error(err.response.message)
+            message.error(err.response.message);
         }
     };
 
@@ -159,7 +169,7 @@ const ReceiptListComponent = () => {
 
     return (
         <div className="receipt-list-container">
-            <h2 style={{ fontWeight: 'bold' }}>Receipts</h2>
+            <h2 style={{ fontWeight: 'bold', margin:"10px" }}>Receipts</h2>
             <div className="filters-container">
                 <div style={{ marginBottom: '10px' }}>
                     <div style={{ float: 'right' }}>
@@ -189,7 +199,7 @@ const ReceiptListComponent = () => {
                     </div>
                 </div>
             </div>
-            <div className="list-container" style={{ marginTop: '20px' }}> {/* Add margin top */}
+            <div className="list-container" style={{ marginTop: '20px' }}>
                 <List
                     loading={loading}
                     itemLayout="horizontal"
@@ -263,7 +273,16 @@ const ReceiptListComponent = () => {
                 {currentReceipt && (
                     <Form layout="vertical">
                         <Form.Item label="Shop Name">
-                            <Input value={currentReceipt.shopName} disabled />
+                            <Input value={currentReceipt.shopName} onChange={(value) => setCurrentReceipt({ ...currentReceipt, shopName: value })} />
+                        </Form.Item>
+                        <Form.Item label="Category">
+                            <Select value={category} onChange={(value) => setCategory(value)} style={{ width: '100%' }}>
+                                {categories.map((category) => (
+                                    <Option key={category} value={category}>
+                                        {category}
+                                    </Option>
+                                ))}
+                            </Select>
                         </Form.Item>
                         <Form.Item label="Amount Paid">
                             <InputNumber value={currentReceipt.amountPaid} onChange={(value) => setCurrentReceipt({ ...currentReceipt, amountPaid: value })} />
@@ -271,8 +290,8 @@ const ReceiptListComponent = () => {
                         <Form.Item label="Discount">
                             <InputNumber value={currentReceipt.discount} onChange={(value) => setCurrentReceipt({ ...currentReceipt, discount: value })} />
                         </Form.Item>
-                        <Form.Item label="Receipt Date">
-                            <DatePicker value={moment(currentReceipt.invoice_reciept_date)} format="DD/MM/YYYY" onChange={(date) => setCurrentReceipt({ ...currentReceipt, invoice_reciept_date: date })} />
+                        <Form.Item label="Invoice Receipt Date (DD/MM/YYYY)">
+                                <Input value={currentReceipt.invoice_reciept_date} onChange={(e) => setCurrentReceipt({ ...currentReceipt, invoice_reciept_date: e.target.value })} />
                         </Form.Item>
                         <Form.Item label="Tax">
                             <InputNumber value={currentReceipt.tax} onChange={(value) => setCurrentReceipt({ ...currentReceipt, tax: value })} />
