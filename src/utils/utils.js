@@ -5,3 +5,10 @@ export const chunkArr = (arr, chunkSize) => {
   }
   return chunked;
 };
+
+export const extractNumber =(currencyString) =>{
+const numberString = currencyString.replace(/[^\d.-]/g, '');
+
+  const number = parseFloat(numberString);
+  return number;
+}

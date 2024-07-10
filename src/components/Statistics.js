@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Col, Row, Statistic, Card } from 'antd';
+import moment from 'moment';
+import { extractNumber } from '../utils/utils';
 
 const wrapperStyle = {
     width: '100%',
@@ -11,19 +13,18 @@ const StatisticsComponent = ({ receipts }) => {
     const [totalSpendingsThisMonth, setTotalSpendingsThisMonth] = useState(0);
     const [totalRecieptsThisMonth, setTotalRecieptsThisMonth] = useState(0);
 
-    const totalSum = receipts.reduce((sum, receipt) => sum + Number(receipt.total), 0);
+    const totalSum = receipts.reduce((sum, receipt) => sum + Number(extractNumber(receipt.total)), 0);
 
-    const filterReceiptsByCurrentMonthAndYear = (receipts) => {
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth();
-        const currentYear = currentDate.getFullYear();
+    const filterReceiptsByCurrentMonthAndYear = () => {
+        const start = moment().startOf('month');
+        const end = moment().endOf('month');
+    
 
-        return receipts.filter(receipt => {
-            const invoiceDate = new Date(receipt.invoice_reciept_date);
-            invoiceDate.setDate(invoiceDate.getDate() + 1);
-            return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
-        });
-    }
+    return receipts.filter(receipt => {
+        const receiptDate = moment(receipt.invoice_reciept_date, 'DD/MM/YYYY').toDate();
+      return moment(receiptDate).isBetween(start, end, 'day', '[]');
+    });
+  };
 
 
     useEffect(() => {

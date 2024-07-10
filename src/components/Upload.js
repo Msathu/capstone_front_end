@@ -6,6 +6,7 @@ import axios from 'axios';
 import moment from 'moment';
 import { saveReciept } from '../services/saveRecieptApi';
 import { categories } from '../constants/categories';
+import { extractNumber } from '../utils/utils';
 
 const { Dragger } = Upload;
 const { Title } = Typography;
@@ -65,13 +66,15 @@ const UploadComponent = () => {
 
       const formattedDate = INVOICE_RECEIPT_DATE ? moment(INVOICE_RECEIPT_DATE, ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY/MM/DD']).format('DD/MM/YYYY') : moment().format('DD/MM/YYYY');
 
+      const TOTAL_IN_NUMBER = extractNumber(TOTAL);
+
       const transformedData = {
         shopName: SHOP_NAME || VENDOR_NAME,
         category:'Retail and Grocery',
         vendor_name: VENDOR_NAME,
         vendor_phone: VENDOR_PHONE,
         tax: TAX,
-        total: TOTAL,
+        total: TOTAL_IN_NUMBER,
         amountPaid: AMOUNT_PAID,
         discount: DISCOUNT,
         invoice_reciept_date: formattedDate,
